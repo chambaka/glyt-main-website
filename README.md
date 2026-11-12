@@ -11,7 +11,28 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` and `/track` to `http://localhost:8080` (see `vite.config.js`). Start `glyt-backend` first so Hibernate can create/update tables.
+Vite proxies `/api` and `/track` to `http://localhost:8070` (see `vite.config.js`). Start `glyt-backend` first so Hibernate can create/update tables.
+
+## Deploy
+
+Production deploys on push to `main` via GitHub Actions (ShuleHub-style release symlink on the same VPS as `ops.golyt.co.tz`).
+
+| Path | Purpose |
+| --- | --- |
+| `.github/workflows/deploy.yml` | Build, upload `dist`, atomic release switch |
+| `deploy/nginx/golyt.co.tz.conf` | Nginx site → `/var/www/golyt.co.tz/current` + API proxy to `:8070` |
+
+Required repository secrets (same as ops console): `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY`.
+
+One-time server setup:
+
+```bash
+sudo mkdir -p /var/www/golyt.co.tz
+sudo cp deploy/nginx/golyt.co.tz.conf /etc/nginx/sites-available/golyt.co.tz
+sudo ln -sfn /etc/nginx/sites-available/golyt.co.tz /etc/nginx/sites-enabled/golyt.co.tz
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d golyt.co.tz -d www.golyt.co.tz
+```
 
 ## Phase 3 pages
 

@@ -1,0 +1,297 @@
+name: Deploy GoLyt Website
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: glyt-website-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+
+      # =====================================================
+      # CHECKOUT
+      # =====================================================
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # =====================================================
+      # NODE.JS
+      # =====================================================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # =====================================================
+      # INSTALL DEPENDENCIES
+      # =====================================================
+      - name: Install Dependencies
+        run: npm ci
+
+      # =====================================================
+      # BUILD
+      # =====================================================
+      - name: Build Application
+        run: npm run build
+
+      # =====================================================
+      # VERIFY BUILD
+      # =====================================================
+      - name: Verify dist
+        run: |
+          set -e
+
+          echo "Checking dist directory..."
+
+          ls -la dist/
+
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html was not built."
+            exit 1
+          fi
+
+          echo "Build verified successfully."
+
+      # =====================================================
+      # PREPARE SSH
+      # =====================================================
+      - name: Prepare SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -e
+
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+          chmod 644 ~/.ssh/known_hosts
+
+      # =====================================================
+      # CREATE REMOTE TEMP DIRECTORY
+      # =====================================================
+      - name: Prepare VPS
+        env:
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -e
+
+          ssh \
+            -i ~/.ssh/id_rsa \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=10 \
+            "$VPS_USERNAME@$VPS_HOST" \
+            "mkdir -p /tmp/glyt-website"
+
+      # =====================================================
+      # UPLOAD BUILD
+      # =====================================================
+      - name: Upload dist
+        env:
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -e
+
+          scp -r \
+            -i ~/.ssh/id_rsa \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=10 \
+            dist \
+            "$VPS_USERNAME@$VPS_HOST:/tmp/glyt-website/"
+
+      # =====================================================
+      # DEPLOY
+      # =====================================================
+      - name: Deploy Application
+        env:
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -e
+
+          cat > deploy.sh << 'EOF'
+          set -euo pipefail
+
+          APP_DIR="/var/www/golyt.co.tz"
+          BACKUP_DIR="$APP_DIR/backup"
+          TEMP_DIR="/tmp/glyt-website"
+          RELEASES_DIR="$APP_DIR/releases"
+
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          RELEASE_DIR="$RELEASES_DIR/$TIMESTAMP"
+
+          echo "========================================="
+          echo "STARTING GOLYT WEBSITE DEPLOYMENT"
+          echo "========================================="
+
+          echo "User: $(id -un)"
+          echo "UID: $(id -u)"
+
+          # ---------------------------------------------------
+          # VERIFY UPLOAD
+          # ---------------------------------------------------
+
+          echo "Checking uploaded files..."
+
+          if [ ! -f "$TEMP_DIR/dist/index.html" ]; then
+            echo "ERROR: dist/index.html was not uploaded."
+            exit 1
+          fi
+
+          echo "Uploaded files verified."
+
+          # ---------------------------------------------------
+          # CREATE DIRECTORIES
+          # ---------------------------------------------------
+
+          echo "Creating deployment directories..."
+
+          mkdir -p \
+            "$APP_DIR" \
+            "$BACKUP_DIR" \
+            "$RELEASES_DIR" \
+            "$RELEASE_DIR"
+
+          # ---------------------------------------------------
+          # COPY NEW RELEASE
+          # ---------------------------------------------------
+
+          echo "Copying new release..."
+
+          cp -a "$TEMP_DIR/dist/." "$RELEASE_DIR/"
+
+          if [ ! -f "$RELEASE_DIR/index.html" ]; then
+            echo "ERROR: Release does not contain index.html."
+            rm -rf "$RELEASE_DIR"
+            exit 1
+          fi
+
+          # ---------------------------------------------------
+          # BACKUP THE LIVE RELEASE, NOT THE SYMLINK
+          # ---------------------------------------------------
+
+          if [ -L "$APP_DIR/current" ] || [ -d "$APP_DIR/current" ]; then
+
+            CURRENT_REAL=$(readlink -f "$APP_DIR/current" || true)
+
+            if [ -n "$CURRENT_REAL" ] && [ -d "$CURRENT_REAL" ]; then
+              echo "Backing up current release..."
+              cp -a "$CURRENT_REAL" "$BACKUP_DIR/$TIMESTAMP"
+              echo "Backup created: $BACKUP_DIR/$TIMESTAMP"
+            else
+              echo "No previous release found."
+            fi
+
+          else
+
+            echo "No previous release found."
+
+          fi
+
+          # ---------------------------------------------------
+          # SWITCH RELEASE ATOMICALLY
+          # ---------------------------------------------------
+
+          echo "Activating new release..."
+
+          ln -sfn "$RELEASE_DIR" "$APP_DIR/.current-next"
+          mv -Tf "$APP_DIR/.current-next" "$APP_DIR/current"
+
+          # ---------------------------------------------------
+          # VERIFY ACTIVE RELEASE
+          # ---------------------------------------------------
+
+          if [ ! -f "$APP_DIR/current/index.html" ]; then
+            echo "ERROR: Active release is missing index.html."
+            exit 1
+          fi
+
+          echo "Active release:"
+          readlink -f "$APP_DIR/current"
+
+          # ---------------------------------------------------
+          # KEEP ONLY LAST 10 RELEASES
+          # ---------------------------------------------------
+
+          echo "Cleaning old releases..."
+
+          mapfile -t old_releases < <(ls -1dt "$RELEASES_DIR"/*/ 2>/dev/null || true)
+          if [ "${#old_releases[@]}" -gt 10 ]; then
+            rm -rf "${old_releases[@]:10}"
+          fi
+
+          # ---------------------------------------------------
+          # KEEP ONLY LAST 10 BACKUPS
+          # ---------------------------------------------------
+
+          echo "Cleaning old backups..."
+
+          mapfile -t old_backups < <(ls -1dt "$BACKUP_DIR"/*/ 2>/dev/null || true)
+          if [ "${#old_backups[@]}" -gt 10 ]; then
+            rm -rf "${old_backups[@]:10}"
+          fi
+
+          # ---------------------------------------------------
+          # CLEAN TEMP FILES
+          # ---------------------------------------------------
+
+          echo "Cleaning temporary files..."
+
+          rm -rf "$TEMP_DIR"
+
+          echo "========================================="
+          echo "DEPLOYMENT COMPLETED SUCCESSFULLY"
+          echo "========================================="
+
+          echo "Application:"
+          echo "$APP_DIR/current"
+
+          echo "Release:"
+          echo "$RELEASE_DIR"
+
+          EOF
+
+          chmod +x deploy.sh
+
+          ssh \
+            -i ~/.ssh/id_rsa \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=10 \
+            "$VPS_USERNAME@$VPS_HOST" \
+            'bash -s' < deploy.sh
+
+      # =====================================================
+      # CLEAN SSH KEY
+      # =====================================================
+      - name: Cleanup SSH Key
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
+
+      # =====================================================
+      # SUCCESS
+      # =====================================================
+      - name: Deployment Success
+        run: |
+          echo "========================================="
+          echo "GOLYT WEBSITE DEPLOYMENT SUCCESSFUL"
+          echo "========================================="
