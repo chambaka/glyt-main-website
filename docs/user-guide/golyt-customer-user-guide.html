@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GoLyt Customer User Guide</title>
+  <style>
+    :root {
+      --navy: #071c37;
+      --navy-deep: #041225;
+      --blue: #638db5;
+      --light: #8fafcc;
+      --mist: #d7e4ef;
+      --sand: #eef4f8;
+      --text: #243447;
+      --muted: #5a7188;
+      --line: #d5e0ea;
+      --ok: #1f7a4d;
+      --radius: 14px;
+      --font: "IBM Plex Sans", "Segoe UI", sans-serif;
+      --display: "Sora", "IBM Plex Sans", sans-serif;
+    }
+    @page { size: A4; margin: 16mm 14mm 18mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 11pt;
+      line-height: 1.5;
+      background: #fff;
+    }
+    h1, h2, h3 {
+      color: var(--navy);
+      font-family: var(--display);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.4em;
+    }
+    h1 { font-size: 28pt; line-height: 1.1; }
+    h2 { font-size: 18pt; }
+    h3 { font-size: 13pt; }
+    p { margin: 0 0 0.75em; }
+    ul, ol { margin: 0 0 1em; padding-left: 1.2em; }
+    li { margin: 0.25em 0; }
+    code {
+      font-size: 0.92em;
+      background: var(--sand);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+    .cover {
+      min-height: 250mm;
+      padding: 18mm 8mm 12mm;
+      border-radius: 18px;
+      background:
+        radial-gradient(900px 420px at 90% 10%, rgba(143, 175, 204, 0.35), transparent 55%),
+        linear-gradient(165deg, var(--navy-deep), var(--navy) 55%, #0d2a4d);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+    }
+    .cover .brand-plate {
+      width: 210px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+    }
+    .cover .brand-plate img { width: 100%; height: auto; display: block; }
+    .cover .eyebrow {
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      color: var(--light);
+      margin-bottom: 10px;
+    }
+    .cover h1 { color: #fff; font-size: 34pt; max-width: 12ch; }
+    .cover .support { max-width: 36ch; color: rgba(255,255,255,0.82); font-size: 12.5pt; }
+    .cover-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      padding-top: 16px;
+      color: rgba(255,255,255,0.78);
+      font-size: 0.92rem;
+    }
+    .kicker {
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .page, .toc { page-break-after: always; padding-top: 4mm; }
+    .page:last-child { page-break-after: auto; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .pill {
+      border: 1px solid var(--line);
+      background: var(--sand);
+      color: var(--navy);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .shot {
+      margin: 12px 0 4px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--sand);
+    }
+    .shot img { width: 100%; display: block; }
+    .caption {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0 0 14px;
+    }
+    .callout, .info-card {
+      background: linear-gradient(180deg, #f7fbfe, var(--sand));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .callout { border-left: 4px solid var(--blue); }
+    .toc-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 16px;
+      background: #fff;
+    }
+    .toc-list { list-style: none; padding: 0; margin: 0; }
+    .toc-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .toc-list li:last-child { border-bottom: 0; }
+    .num {
+      display: inline-flex;
+      width: 1.8em;
+      color: var(--blue);
+      font-weight: 700;
+      font-family: var(--display);
+    }
+    .muted { color: var(--muted); }
+    .two-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
+    .footer-note {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    strong { color: var(--navy); }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <div class="brand-plate">
+        <img src="screenshots/logo.png" alt="GoLyt" />
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow">Traveller guide · Kilimanjaro → Zanzibar</div>
+      <h1>Customer User Guide</h1>
+      <p class="support">How to book, track, and collect luggage with GoLyt — arrive free while officers handle sealed custody.</p>
+    </div>
+    <div class="cover-meta">
+      <div><strong style="color:#fff">Audience</strong><br />Travellers and guests using the GoLyt website</div>
+      <div><strong style="color:#fff">Version</strong><br />November 2026</div>
+    </div>
+  </section>
+
+  <section class="toc">
+    <div class="kicker">Contents</div>
+    <h2>What’s in this guide</h2>
+    <p class="muted">A walkthrough of the public GoLyt website for the Kilimanjaro → Zanzibar pilot.</p>
+    <div class="toc-card">
+      <ol class="toc-list">
+        <li><span><span class="num">01</span> Home</span></li>
+        <li><span><span class="num">02</span> How it works</span></li>
+        <li><span><span class="num">03</span> Services &amp; pricing</span></li>
+        <li><span><span class="num">04</span> Book a service</span></li>
+        <li><span><span class="num">05</span> Track luggage</span></li>
+        <li><span><span class="num">06</span> Customer account</span></li>
+        <li><span><span class="num">07</span> Contact, FAQs &amp; tips</span></li>
+      </ol>
+    </div>
+    <div class="info-card">
+      <h3>Before you start</h3>
+      <ul>
+        <li>Open the GoLyt website in a browser (local default: <strong>http://localhost:5173</strong>).</li>
+        <li>You do <strong>not</strong> need a mobile app for the pilot — use this site and your private track link.</li>
+        <li>Switch language with <strong>EN / SW</strong> in the top navigation.</li>
+        <li>Officers use a separate ops app; operations lead uses the admin console. This guide is for travellers only.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Start here</div>
+    <h2>1. Home</h2>
+    <div class="pill-row"><span class="pill">Brand</span><span class="pill">Book / Track CTAs</span></div>
+    <p>Home is the first viewport of the traveller site: GoLyt branding, the corridor promise, and clear next steps.</p>
+    <ul>
+      <li><strong>Book a service</strong> starts a quotation and booking flow.</li>
+      <li><strong>Track luggage</strong> opens status lookup with your bag code and private token.</li>
+      <li>The page also previews the four custody steps so you know what happens after booking.</li>
+    </ul>
+    <div class="shot"><img src="screenshots/customer-01-home.png" alt="Home page" /></div>
+    <p class="caption">Figure 1 — GoLyt home with Book and Track actions.</p>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Understand custody</div>
+    <h2>2. How it works</h2>
+    <div class="pill-row"><span class="pill">Four steps</span><span class="pill">No GPS</span></div>
+    <p>How it works explains sealed custody — status events, not live maps.</p>
+    <ol>
+      <li><strong>Book</strong> — choose a service online or register at KIA intake with an officer.</li>
+      <li><strong>Secure</strong> — QR label, photos, and seals create a sealed custody record.</li>
+      <li><strong>Transfer</strong> — manifest handover moves bags toward Zanzibar storage.</li>
+      <li><strong>Collect</strong> — you get a ready notice, then verified release at the pickup desk.</li>
+    </ol>
+    <div class="callout">Tracking is status-based. Share your private track link only with people who should see bag status.</div>
+    <div class="shot"><img src="screenshots/customer-02-how.png" alt="How it works" /></div>
+    <p class="caption">Figure 2 — Four custody steps from booking to collection.</p>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Choose</div>
+    <h2>3. Services &amp; pricing</h2>
+    <div class="pill-row"><span class="pill">Catalog</span><span class="pill">Live amounts</span></div>
+    <p><strong>Services</strong> lists active offerings for the pilot corridor. <strong>Pricing</strong> shows live catalog amounts before you commit.</p>
+    <ul>
+      <li>Amounts are typically shown per bag in TZS.</li>
+      <li>Your final charge follows the quotation you generate on Book.</li>
+      <li>Mobile money and card checkout continue to roll out; the site may show a payment scaffold while providers go live.</li>
+    </ul>
+    <div class="shot"><img src="screenshots/customer-03-services.png" alt="Services" /></div>
+    <p class="caption">Figure 3 — Services available on the pilot corridor.</p>
+    <div class="shot"><img src="screenshots/customer-04-pricing.png" alt="Pricing" /></div>
+    <p class="caption">Figure 4 — Pricing from the live catalog.</p>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Core journey</div>
+    <h2>4. Book a service</h2>
+    <div class="pill-row"><span class="pill">Quote</span><span class="pill">Travel details</span><span class="pill">Account</span></div>
+    <p>Book is where travellers create a quotation and convert it into a booking.</p>
+    <ol>
+      <li>Select a <strong>service</strong> and number of <strong>bags</strong>, then choose <strong>Get quote</strong>.</li>
+      <li>Review the quote amount and expiry.</li>
+      <li>Sign in under <strong>Account</strong> if you have not already — converting a quote requires a customer account.</li>
+      <li>Enter travel details (arrival flight, KIA date, Zanzibar date/flight, hotel, notes).</li>
+      <li>Choose <strong>Create booking</strong>. Payment initiation may appear as a later-phase checkout step.</li>
+    </ol>
+    <div class="callout">Guests can request a quote without signing in. Creating the booking needs a registered customer account.</div>
+    <div class="shot"><img src="screenshots/customer-05-book.png" alt="Book a service" /></div>
+    <p class="caption">Figure 5 — Book flow with service selection and quotation.</p>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Status</div>
+    <h2>5. Track luggage</h2>
+    <div class="pill-row"><span class="pill">Private token</span><span class="pill">Timeline</span><span class="pill">Pickup</span></div>
+    <p>Track luggage shows sealed-custody status using the bag code and private token from your GoLyt message or officer.</p>
+    <ul>
+      <li>Enter <strong>Bag code</strong> and <strong>Tracking token</strong>, then <strong>Show status</strong>.</li>
+      <li>Review the custody timeline (received, sealed, airline handover, Zanzibar storage, ready, released).</li>
+      <li>Pickup name, place, hours, and phone appear when available.</li>
+      <li><strong>Open printable track page</strong> opens a shareable/print-friendly track view in a new tab.</li>
+    </ul>
+    <div class="shot"><img src="screenshots/customer-06-track.png" alt="Track luggage" /></div>
+    <p class="caption">Figure 6 — Track form with custody timeline and pickup details.</p>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Your profile</div>
+    <h2>6. Customer account</h2>
+    <div class="pill-row"><span class="pill">Register / Sign in</span><span class="pill">Bookings</span><span class="pill">Support</span></div>
+    <p>Account is the traveller portal for identity, bookings, and support tickets.</p>
+    <ul>
+      <li><strong>Register</strong> with full name, phone, nationality, passport, email, and password.</li>
+      <li><strong>Sign in</strong> to see your profile, open bookings, and receipt summary details.</li>
+      <li>Cancel an <strong>OPEN</strong> booking when needed.</li>
+      <li>Open a <strong>support ticket</strong> from Account (signed-in messages are tracked against your profile).</li>
+    </ul>
+    <div class="callout">Customer accounts are separate from officer and admin staff accounts. Use the website Account page — not the ops console.</div>
+    <div class="shot"><img src="screenshots/customer-07-account.png" alt="Customer account" /></div>
+    <p class="caption">Figure 7 — Account sign-in / register for travellers.</p>
+    <div class="shot"><img src="screenshots/customer-08-account-bookings.png" alt="Account bookings" /></div>
+    <p class="caption">Figure 8 — Signed-in account with bookings and support.</p>
+  </section>
+
+  <section class="page">
+    <div class="kicker">Help</div>
+    <h2>7. Contact, FAQs &amp; tips</h2>
+    <div class="pill-row"><span class="pill">Desk</span><span class="pill">FAQs</span></div>
+    <p><strong>Contact</strong> lists desk details and a message form. <strong>FAQs</strong> answers common pilot questions.</p>
+    <ul>
+      <li>No traveller mobile app is required for the pilot.</li>
+      <li>Bags move KIA intake → sealed custody → airline handover → Zanzibar storage → collection.</li>
+      <li>There is no live GPS — tracking is custody status only.</li>
+      <li>Collection requires the named traveller with ID verification at the pickup desk.</li>
+    </ul>
+    <div class="two-col">
+      <div>
+        <div class="shot"><img src="screenshots/customer-09-faq.png" alt="FAQs" /></div>
+        <p class="caption">Figure 9 — FAQs for the pilot corridor.</p>
+      </div>
+      <div class="info-card">
+        <h3>Quick tips</h3>
+        <ul>
+          <li>Keep your track token private.</li>
+          <li>Bring matching ID to the Zanzibar desk.</li>
+          <li>Confirm pickup hours on your track link.</li>
+          <li>Use EN/SW anytime from the header.</li>
+        </ul>
+        <h3>Need help?</h3>
+        <p class="muted">Use Contact or open a support ticket from Account when signed in.</p>
+      </div>
+    </div>
+    <div class="footer-note">
+      GoLyt — Go light. Explore more. · Customer User Guide · Kilimanjaro → Zanzibar pilot
+    </div>
+  </section>
+</body>
+</html>
